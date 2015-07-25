@@ -1,1 +1,1 @@
-# aws-java-sdk-awis
+# amazon-alexa-client-java
