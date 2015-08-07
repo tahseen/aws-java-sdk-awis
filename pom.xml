@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>amazon.services.awis</groupId>
-  <artifactId>amazon-alexa-client</artifactId>
+  <groupId>com.github.tahseen</groupId>
+  <artifactId>aws-java-sdk-awis</artifactId>
   <packaging>jar</packaging>
   <version>1.0</version>
   
-  <name>amazon-alexa-client-java</name>
+  <name>aws-java-sdk-awis</name>
   <description>Amazon Alexa Web Information Service client</description>
   <url>http://maven.apache.org</url>
   
@@ -19,7 +19,7 @@
   </licenses>
   
   <scm>
-    <url>https://github.com/tahseen/amazon-alexa-client-java.git</url>
+    <url>https://github.com/tahseen/aws-java-sdk-awis.git</url>
   </scm>
   
   <dependencies>
