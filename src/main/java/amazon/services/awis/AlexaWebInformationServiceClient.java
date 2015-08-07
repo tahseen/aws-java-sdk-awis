@@ -1,6 +1,10 @@
 package amazon.services.awis;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.security.SignatureException;
 import java.text.SimpleDateFormat;
@@ -62,9 +66,13 @@ public class AlexaWebInformationServiceClient {
 
         Map<String, String> queryParams = new TreeMap<String, String>();
         queryParams.put("Action", request.getAction().name());
-        //queryParams.put("ResponseGroup", request.getResponseGroups());
+        queryParams.put("ResponseGroup", request.getResponseGroups().stream().map( rg -> rg.name()).reduce(",", String::concat));
         queryParams.put("AWSAccessKeyId", credentials.getAWSAccessKeyId());
         queryParams.put("Timestamp", timestamp);
+        if(request instanceof UrlInfoRequest) {
+            UrlInfoRequest req = (UrlInfoRequest) request;
+            queryParams.put("url", req.getUrl());
+        }
         queryParams.put("SignatureVersion", "2");
         queryParams.put("SignatureMethod", HASH_ALGORITHM);
 
@@ -90,13 +98,15 @@ public class AlexaWebInformationServiceClient {
      * @throws java.security.SignatureException
      *          when signature generation fails
      */
-    protected String generateSignature(Map<String, String> params) throws java.security.SignatureException {
+    protected String generateSignature(String query) throws java.security.SignatureException {
         if(credentials == null) {
             throw new IllegalStateException("AWS credentials are not intialized.");
         }
         
         String result = null;
         try {
+            String toSign = "GET\n" + SERVICE_HOST + "\n/\n" + query;
+            
             // get a hash key from the raw key bytes
             SecretKeySpec signingKey = new SecretKeySpec(credentials.getAWSAccessKeyId().getBytes(), HASH_ALGORITHM);
 
@@ -104,22 +114,36 @@ public class AlexaWebInformationServiceClient {
             Mac mac = Mac.getInstance(HASH_ALGORITHM);
             mac.init(signingKey);
 
-            // compute the hmac on input data bytes
-            // byte[] rawHmac = mac.doFinal(data.getBytes());
+            //compute the hmac on input data bytes
+            byte[] rawHmac = mac.doFinal(toSign.getBytes());
 
             // base64-encode the hmac
-            // result = Encoding.EncodeBase64(rawHmac);
-            //result = new BASE64Encoder().encode(rawHmac);
+            result = new BASE64Encoder().encode(rawHmac);
 
         } catch (Exception e) {
-            throw new SignatureException("Failed to generate HMAC : "
-                    + e.getMessage());
+            throw new SignatureException("Failed to generate HMAC : "  + e.getMessage());
         }
         return result;
     }
     
-    public UrlInfoResult getUrlInfo(UrlInfoRequest request) {
-        
+    /**
+     * The UrlInfo action provides information about a website, such as:
+     * - how popular the site is
+     * - what sites are related
+     * - contact information for the owner of the site
+     * 
+     * @param request 
+     * @return
+     * @throws SignatureException
+     * @throws IOException 
+     */
+    public UrlInfoResult getUrlInfo(UrlInfoRequest request) throws SignatureException, IOException {
+        String query = buildQueryString(request);
+        String signature = generateSignature(query);
+
+        String uri = AWS_BASE_URL + query + "&Signature=" + URLEncoder.encode(signature, "UTF-8");
+
+        String xmlResponse = makeRequest(uri);
         
         return null;
     }  
@@ -138,5 +162,31 @@ public class AlexaWebInformationServiceClient {
 
     public SitesLinkingInResult getSitesLinkingIn(SitesLinkingInRequest request) {
         return null;
+    }
+    
+    /**
+     * Makes a request to the specified Url and return the results as a String
+     *
+     * @param requestUrl url to make request to
+     * @return the XML document as a String
+     * @throws IOException
+     */
+    public static String makeRequest(String requestUrl) throws IOException {
+        URL url = new URL(requestUrl);
+        URLConnection conn = url.openConnection();
+        InputStream in = conn.getInputStream();
+
+        // Read the response
+        StringBuffer sb = new StringBuffer();
+        int c;
+        int lastChar = 0;
+        while ((c = in.read()) != -1) {
+            if (c == '<' && (lastChar == '>'))
+                sb.append('\n');
+            sb.append((char) c);
+            lastChar = c;
+        }
+        in.close();
+        return sb.toString();
     }
 }
