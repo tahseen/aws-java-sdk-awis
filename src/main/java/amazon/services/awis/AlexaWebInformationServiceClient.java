@@ -3,8 +3,8 @@ package amazon.services.awis;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.security.SignatureException;
 import java.text.SimpleDateFormat;
@@ -17,12 +17,17 @@ import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import sun.misc.BASE64Encoder;
 
 import com.amazonaws.auth.AWSCredentials;
 
 
 public class AlexaWebInformationServiceClient {
+    protected final static Logger logger = LoggerFactory.getLogger(AlexaWebInformationServiceClient.class);
+
     private static final String SERVICE_HOST = "awis.amazonaws.com";
     private static final String AWS_BASE_URL = "http://" + SERVICE_HOST + "/?";
     private static final String HASH_ALGORITHM = "HmacSHA256";
@@ -58,6 +63,9 @@ public class AlexaWebInformationServiceClient {
         return format.format(date);
     }
     
+    private static final String ACTION_NAME = "UrlInfo";
+    private static final String RESPONSE_GROUP_NAME = "Rank,ContactInfo,LinksInCount";
+    
     /**
      * Builds the query string
      */
@@ -65,29 +73,39 @@ public class AlexaWebInformationServiceClient {
         String timestamp = getTimestamp(Calendar.getInstance().getTime());
 
         Map<String, String> queryParams = new TreeMap<String, String>();
-        queryParams.put("Action", request.getAction().name());
-        queryParams.put("ResponseGroup", request.getResponseGroups().stream().map( rg -> rg.name()).reduce(",", String::concat));
+        queryParams.put("Action", ACTION_NAME);
+        queryParams.put("ResponseGroup", RESPONSE_GROUP_NAME);
         queryParams.put("AWSAccessKeyId", credentials.getAWSAccessKeyId());
         queryParams.put("Timestamp", timestamp);
-        if(request instanceof UrlInfoRequest) {
-            UrlInfoRequest req = (UrlInfoRequest) request;
-            queryParams.put("url", req.getUrl());
-        }
+        queryParams.put("Url", "bryght.com");
         queryParams.put("SignatureVersion", "2");
         queryParams.put("SignatureMethod", HASH_ALGORITHM);
+        
+//        Map<String, String> queryParams = new TreeMap<String, String>();
+//        queryParams.put("Action", request.getAction().name());
+//        queryParams.put("ResponseGroup", request.getResponseGroups().stream().map( rg -> rg.name()).reduce(",", String::concat));
+//        queryParams.put("AWSAccessKeyId", credentials.getAWSAccessKeyId());
+//        queryParams.put("Timestamp", timestamp);
+//        if(request instanceof UrlInfoRequest) {
+//            UrlInfoRequest req = (UrlInfoRequest) request;
+//            queryParams.put("Url", req.getUrl());
+//        }
+//        queryParams.put("SignatureVersion", "2");
+//        queryParams.put("SignatureMethod", HASH_ALGORITHM);
 
-        String query = "";
+        
+        StringBuffer query = new StringBuffer();
         boolean first = true;
-        for (String name : queryParams.keySet()) {
-            if (first)
+        for(String name : queryParams.keySet()) {
+            if (first) {
                 first = false;
-            else
-                query += "&";
-
-            query += name + "=" + URLEncoder.encode(queryParams.get(name), "UTF-8");
+            } else {
+                query.append("&");
+            }
+            query.append(name).append("=").append(URLEncoder.encode(queryParams.get(name), "UTF-8"));
         }
 
-        return query;
+        return query.toString();
     }
     
     /**
@@ -143,7 +161,11 @@ public class AlexaWebInformationServiceClient {
 
         String uri = AWS_BASE_URL + query + "&Signature=" + URLEncoder.encode(signature, "UTF-8");
 
+        logger.info("Request Url: {}", uri);
+        
         String xmlResponse = makeRequest(uri);
+        
+        logger.info(xmlResponse);
         
         return null;
     }  
@@ -173,20 +195,30 @@ public class AlexaWebInformationServiceClient {
      */
     public static String makeRequest(String requestUrl) throws IOException {
         URL url = new URL(requestUrl);
-        URLConnection conn = url.openConnection();
-        InputStream in = conn.getInputStream();
-
-        // Read the response
-        StringBuffer sb = new StringBuffer();
-        int c;
-        int lastChar = 0;
-        while ((c = in.read()) != -1) {
-            if (c == '<' && (lastChar == '>'))
-                sb.append('\n');
-            sb.append((char) c);
-            lastChar = c;
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        
+        InputStream in;
+        try {
+            in = conn.getInputStream();
+        } catch(Exception e) {
+            in = conn.getErrorStream();
         }
-        in.close();
-        return sb.toString();
+       
+        StringBuffer sb = null;
+        if(in != null) {
+            // Read the response
+            sb = new StringBuffer();
+            int c;
+            int lastChar = 0;
+            while ((c = in.read()) != -1) {
+                if (c == '<' && (lastChar == '>'))
+                    sb.append('\n');
+                sb.append((char) c);
+                lastChar = c;
+            }
+            in.close();
+        }
+        
+        return sb == null ? null : sb.toString();
     }
 }

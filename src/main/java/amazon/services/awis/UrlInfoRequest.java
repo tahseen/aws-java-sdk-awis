@@ -12,6 +12,10 @@ public class UrlInfoRequest extends Request {
      * Any valid URL.
      */
     private String url;
+    
+    public UrlInfoRequest() {
+        setAction(Action.UrlInfo);
+    }
 
     public String getUrl() {
         return url;
