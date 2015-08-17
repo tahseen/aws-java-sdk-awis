@@ -28,11 +28,14 @@ import com.amazonaws.auth.AWSCredentials;
 public class AlexaWebInformationServiceClient {
     protected final static Logger logger = LoggerFactory.getLogger(AlexaWebInformationServiceClient.class);
 
+    private static final String ACTION_NAME = "UrlInfo";
+    private static final String RESPONSE_GROUP_NAME = "Rank,ContactInfo,LinksInCount";
     private static final String SERVICE_HOST = "awis.amazonaws.com";
     private static final String AWS_BASE_URL = "http://" + SERVICE_HOST + "/?";
     private static final String HASH_ALGORITHM = "HmacSHA256";
 
     private static final String DATEFORMAT_AWS = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
     
     private AWSCredentials credentials;
     
@@ -62,10 +65,7 @@ public class AlexaWebInformationServiceClient {
         format.setTimeZone(TimeZone.getTimeZone("GMT"));
         return format.format(date);
     }
-    
-    private static final String ACTION_NAME = "UrlInfo";
-    private static final String RESPONSE_GROUP_NAME = "Rank,ContactInfo,LinksInCount";
-    
+  
     /**
      * Builds the query string
      */
@@ -80,6 +80,7 @@ public class AlexaWebInformationServiceClient {
         queryParams.put("Url", "bryght.com");
         queryParams.put("SignatureVersion", "2");
         queryParams.put("SignatureMethod", HASH_ALGORITHM);
+
         
 //        Map<String, String> queryParams = new TreeMap<String, String>();
 //        queryParams.put("Action", request.getAction().name());
@@ -125,8 +126,10 @@ public class AlexaWebInformationServiceClient {
         try {
             String toSign = "GET\n" + SERVICE_HOST + "\n/\n" + query;
             
+            logger.info("To Sign: {} ", toSign);
+            
             // get a hash key from the raw key bytes
-            SecretKeySpec signingKey = new SecretKeySpec(credentials.getAWSAccessKeyId().getBytes(), HASH_ALGORITHM);
+            SecretKeySpec signingKey = new SecretKeySpec(credentials.getAWSSecretKey().getBytes(), HASH_ALGORITHM);
 
             // get a hasher instance and initialize with the signing key
             Mac mac = Mac.getInstance(HASH_ALGORITHM);
@@ -201,6 +204,7 @@ public class AlexaWebInformationServiceClient {
         try {
             in = conn.getInputStream();
         } catch(Exception e) {
+        	logger.error("Http request failed.", e);
             in = conn.getErrorStream();
         }
        
