@@ -2,6 +2,7 @@ package amazon.services.awis;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -16,11 +17,15 @@ import java.util.TreeMap;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import sun.misc.BASE64Encoder;
+import amazon.services.awis.generated.UrlInfoResponse;
 
 import com.amazonaws.auth.AWSCredentials;
 
@@ -126,8 +131,6 @@ public class AlexaWebInformationServiceClient {
         try {
             String toSign = "GET\n" + SERVICE_HOST + "\n/\n" + query;
             
-            logger.info("To Sign: {} ", toSign);
-            
             // get a hash key from the raw key bytes
             SecretKeySpec signingKey = new SecretKeySpec(credentials.getAWSSecretKey().getBytes(), HASH_ALGORITHM);
 
@@ -157,8 +160,9 @@ public class AlexaWebInformationServiceClient {
      * @return
      * @throws SignatureException
      * @throws IOException 
+     * @throws JAXBException 
      */
-    public UrlInfoResult getUrlInfo(UrlInfoRequest request) throws SignatureException, IOException {
+    public UrlInfoResponse getUrlInfo(UrlInfoRequest request) throws SignatureException, IOException, JAXBException {
         String query = buildQueryString(request);
         String signature = generateSignature(query);
 
@@ -167,10 +171,17 @@ public class AlexaWebInformationServiceClient {
         logger.info("Request Url: {}", uri);
         
         String xmlResponse = makeRequest(uri);
-        
+
+        xmlResponse.replace("http://awis.amazonaws.com/doc/2005-07-11", "http://alexa.amazonaws.com/doc/2005-10-05/");
+
         logger.info(xmlResponse);
         
-        return null;
+        JAXBContext jc = JAXBContext.newInstance(UrlInfoResponse.class);
+
+        Unmarshaller unmarshaller = jc.createUnmarshaller();
+        UrlInfoResponse urlInfoResponse = (UrlInfoResponse) unmarshaller.unmarshal(new StringReader(xmlResponse));
+        
+        return urlInfoResponse;
     }  
     
     public TrafficHistoryResult getTrafficHistory(TrafficHistoryRequest request) {
