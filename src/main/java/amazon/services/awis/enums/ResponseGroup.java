@@ -80,5 +80,12 @@ public enum ResponseGroup {
      * 
      * Information about the site's content (equivalent to ResponseGroup=SiteData,AdultContent,Popups,Speed,Language)
      */
-    ContentData
+    ContentData,
+    
+    /**
+     * Meta-Response Group
+     * 
+     * History is the only available response group for action TrafficHistory
+     */
+    History
 }

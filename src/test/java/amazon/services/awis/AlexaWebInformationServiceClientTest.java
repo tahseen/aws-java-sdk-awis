@@ -3,6 +3,8 @@ package amazon.services.awis;
 import java.io.IOException;
 import java.security.SignatureException;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import javax.xml.bind.JAXBException;
 
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import amazon.services.awis.enums.ResponseGroup;
+import amazon.services.awis.generated.TrafficHistoryResponse;
 import amazon.services.awis.generated.UrlInfoResponse;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -30,7 +33,7 @@ public class AlexaWebInformationServiceClientTest {
         credentials = defaultAWSCredentialsProviderChain.getCredentials();
     }
     
-    @Test
+   // @Test
     public void testGetUrlInfo() throws SignatureException, IOException, JAXBException {
         AlexaWebInformationServiceClient client = new AlexaWebInformationServiceClient(credentials);
         
@@ -43,14 +46,32 @@ public class AlexaWebInformationServiceClientTest {
         Assert.assertNotNull(urlInfoResponse);
         Assert.assertNotNull(urlInfoResponse.getResponse());
         Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0));
-        Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getUniqueId());
-        Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getCategoryBrowse());
-        Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getCategoryListings());
         Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getContactInfo());
         Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getContentData());
-        Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getCrawlData());
         Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getRelated());
         Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getTrafficData());
-        Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getWebMapData());
+    }
+    
+    @Test
+    public void testGetTrafficHistory() throws SignatureException, IOException, JAXBException {
+        AlexaWebInformationServiceClient client = new AlexaWebInformationServiceClient(credentials);
+        
+        TrafficHistoryRequest request = new TrafficHistoryRequest();
+        request.setUrl("www.bryght.com");
+        request.setRange(20);
+        
+        Calendar start = GregorianCalendar.getInstance();
+        start.set(Calendar.YEAR, 2015);
+        start.set(Calendar.MONTH, 1);
+        start.set(Calendar.DAY_OF_MONTH, 1);
+        
+        request.setStart(start.getTime());
+
+        TrafficHistoryResponse response = client.getTrafficHistory(request);
+       
+        Assert.assertNotNull(response);
+        Assert.assertNotNull(response.getResponse());
+        Assert.assertNotNull(response.getResponse().getTrafficHistoryResult().get(0));
+        Assert.assertNotNull(response.getResponse().getTrafficHistoryResult().get(0).getAlexa().getTrafficHistory());
     }
 }

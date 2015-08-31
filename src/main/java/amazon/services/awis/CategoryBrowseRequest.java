@@ -1,5 +1,5 @@
 package amazon.services.awis;
 
-public class CategoryBrowseRequest {
+public class CategoryBrowseRequest extends Request {
 
 }

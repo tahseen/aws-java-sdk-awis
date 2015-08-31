@@ -9,11 +9,13 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.security.SignatureException;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -24,17 +26,19 @@ import javax.xml.bind.Unmarshaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sun.misc.BASE64Encoder;
+import amazon.services.awis.generated.CategoryBrowseResponse;
+import amazon.services.awis.generated.CategoryListingsResponse;
+import amazon.services.awis.generated.SitesLinkingInResponse;
+import amazon.services.awis.generated.TrafficHistory;
+import amazon.services.awis.generated.TrafficHistoryResponse;
 import amazon.services.awis.generated.UrlInfoResponse;
 
 import com.amazonaws.auth.AWSCredentials;
 
 
-public class AlexaWebInformationServiceClient {
+public class AlexaWebInformationServiceClient implements getResponse {
     protected final static Logger logger = LoggerFactory.getLogger(AlexaWebInformationServiceClient.class);
 
-    private static final String ACTION_NAME = "UrlInfo";
-    private static final String RESPONSE_GROUP_NAME = "Rank,ContactInfo,LinksInCount";
     private static final String SERVICE_HOST = "awis.amazonaws.com";
     private static final String AWS_BASE_URL = "http://" + SERVICE_HOST + "/?";
     private static final String HASH_ALGORITHM = "HmacSHA256";
@@ -76,28 +80,27 @@ public class AlexaWebInformationServiceClient {
      */
     protected String buildQueryString(Request request) throws UnsupportedEncodingException {
         String timestamp = getTimestamp(Calendar.getInstance().getTime());
-
+        
         Map<String, String> queryParams = new TreeMap<String, String>();
-        queryParams.put("Action", ACTION_NAME);
-        queryParams.put("ResponseGroup", RESPONSE_GROUP_NAME);
+        queryParams.put("Action", request.getAction().name());
+        queryParams.put("ResponseGroup", request.getResponseGroups().stream().map( rg -> rg.name()).collect(Collectors.joining(",")));
         queryParams.put("AWSAccessKeyId", credentials.getAWSAccessKeyId());
         queryParams.put("Timestamp", timestamp);
-        queryParams.put("Url", "bryght.com");
+        if(request instanceof UrlInfoRequest) {
+            UrlInfoRequest req = (UrlInfoRequest) request;
+            queryParams.put("Url", req.getUrl());
+        } else  if(request instanceof TrafficHistoryRequest) {
+        	TrafficHistoryRequest req = (TrafficHistoryRequest) request;
+            queryParams.put("Url", req.getUrl());
+            if(req.getRange() != null) {
+                queryParams.put("Range", req.getRange() + "");
+            }   
+            if(req.getStart() != null) {
+                queryParams.put("Start", req.getStart());
+            }
+        } 
         queryParams.put("SignatureVersion", "2");
         queryParams.put("SignatureMethod", HASH_ALGORITHM);
-
-        
-//        Map<String, String> queryParams = new TreeMap<String, String>();
-//        queryParams.put("Action", request.getAction().name());
-//        queryParams.put("ResponseGroup", request.getResponseGroups().stream().map( rg -> rg.name()).reduce(",", String::concat));
-//        queryParams.put("AWSAccessKeyId", credentials.getAWSAccessKeyId());
-//        queryParams.put("Timestamp", timestamp);
-//        if(request instanceof UrlInfoRequest) {
-//            UrlInfoRequest req = (UrlInfoRequest) request;
-//            queryParams.put("Url", req.getUrl());
-//        }
-//        queryParams.put("SignatureVersion", "2");
-//        queryParams.put("SignatureMethod", HASH_ALGORITHM);
 
         
         StringBuffer query = new StringBuffer();
@@ -142,7 +145,7 @@ public class AlexaWebInformationServiceClient {
             byte[] rawHmac = mac.doFinal(toSign.getBytes());
 
             // base64-encode the hmac
-            result = new BASE64Encoder().encode(rawHmac);
+            result = Base64.getEncoder().encodeToString(rawHmac);
 
         } catch (Exception e) {
             throw new SignatureException("Failed to generate HMAC : "  + e.getMessage());
@@ -163,18 +166,7 @@ public class AlexaWebInformationServiceClient {
      * @throws JAXBException 
      */
     public UrlInfoResponse getUrlInfo(UrlInfoRequest request) throws SignatureException, IOException, JAXBException {
-        String query = buildQueryString(request);
-        String signature = generateSignature(query);
-
-        String uri = AWS_BASE_URL + query + "&Signature=" + URLEncoder.encode(signature, "UTF-8");
-
-        logger.info("Request Url: {}", uri);
-        
-        String xmlResponse = makeRequest(uri);
-
-        xmlResponse.replace("http://awis.amazonaws.com/doc/2005-07-11", "http://alexa.amazonaws.com/doc/2005-10-05/");
-
-        logger.info(xmlResponse);
+        String xmlResponse = getResponse(request);
         
         JAXBContext jc = JAXBContext.newInstance(UrlInfoResponse.class);
 
@@ -184,21 +176,51 @@ public class AlexaWebInformationServiceClient {
         return urlInfoResponse;
     }  
     
-    public TrafficHistoryResult getTrafficHistory(TrafficHistoryRequest request) {
-        return null;
+    public TrafficHistoryResponse getTrafficHistory(TrafficHistoryRequest request) throws JAXBException, IOException, SignatureException {
+        String xmlResponse = getResponse(request);
+        
+        JAXBContext jc = JAXBContext.newInstance(TrafficHistoryResponse.class);
+
+        Unmarshaller unmarshaller = jc.createUnmarshaller();
+        TrafficHistoryResponse urlInfoResponse = (TrafficHistoryResponse) unmarshaller.unmarshal(new StringReader(xmlResponse));
+        
+        return urlInfoResponse;
+    }
+    
+    public CategoryBrowseResponse getCategoryBrowse(CategoryBrowseRequest request) throws JAXBException, UnsupportedEncodingException, SignatureException, IOException {
+        String xmlResponse = getResponse(request);
+        
+        JAXBContext jc = JAXBContext.newInstance(CategoryBrowseResponse.class);
+
+        Unmarshaller unmarshaller = jc.createUnmarshaller();
+        CategoryBrowseResponse urlInfoResponse = (CategoryBrowseResponse) unmarshaller.unmarshal(new StringReader(xmlResponse));
+        
+        return urlInfoResponse;
     }   
     
-    public CategoryBrowseResult getCategoryBrowse(CategoryBrowseRequest request) {
-        return null;
-    }   
-    
-    public CategoryListingsResult getCategoryListings(CategoryListingsRequest request) {
+    public CategoryListingsResponse getCategoryListings(CategoryListingsRequest request) {
         return null;
     }  
 
-    public SitesLinkingInResult getSitesLinkingIn(SitesLinkingInRequest request) {
+    public SitesLinkingInResponse getSitesLinkingIn(SitesLinkingInRequest request) {
         return null;
     }
+
+	private String getResponse(Request request) throws UnsupportedEncodingException, SignatureException, IOException {
+		String query = buildQueryString(request);
+        String signature = generateSignature(query);
+
+        String uri = AWS_BASE_URL + query + "&Signature=" + URLEncoder.encode(signature, "UTF-8");
+
+        logger.info("Request Url: {}", uri);
+        
+        String xmlResponse = makeRequest(uri);
+
+        xmlResponse = xmlResponse.replace("xmlns:aws=\"http://awis.amazonaws.com/doc/2005-07-11\"", "");
+
+        logger.info(xmlResponse);
+		return xmlResponse;
+	}  
     
     /**
      * Makes a request to the specified Url and return the results as a String
