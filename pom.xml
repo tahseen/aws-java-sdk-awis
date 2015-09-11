@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.github.tahseen</groupId>
+	<groupId>net.distributary.tahseen</groupId>
 	<artifactId>aws-java-sdk-awis</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0</version>
+	<version>0.1</version>
 
 	<name>aws-java-sdk-awis</name>
 	<description>Amazon Alexa Web Information Service client</description>
@@ -21,6 +21,19 @@
 	<scm>
 		<url>https://github.com/tahseen/aws-java-sdk-awis.git</url>
 	</scm>
+	
+	<distributionManagement>
+		<repository>
+			<id>aws-release</id>
+			<name>AWS Release Repository</name>
+			<url>s3://tahseen.distributary.net/release</url>
+		</repository>
+		<snapshotRepository>
+			<id>aws-snapshot</id>
+			<name>AWS Snapshot Repository</name>
+			<url>s3://tahseen.distributary.net/snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 	<dependencies>
 		<dependency>
@@ -74,5 +87,12 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<extensions>
+			<extension>
+				<groupId>org.springframework.build</groupId>
+				<artifactId>aws-maven</artifactId>
+				<version>5.0.0.RELEASE</version>
+			</extension>
+	    </extensions>
 	</build>
 </project>
