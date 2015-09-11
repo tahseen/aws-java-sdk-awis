@@ -135,5 +135,3 @@ Assert.assertNotNull(response.getResponse());
 Assert.assertNotNull(response.getResponse().getSitesLinkingInResult().get(0));
 Assert.assertNotNull(response.getResponse().getSitesLinkingInResult().get(0).getAlexa().getSitesLinkingIn()); 
 ```
-
-
