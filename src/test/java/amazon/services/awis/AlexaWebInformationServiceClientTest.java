@@ -14,7 +14,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import amazon.services.awis.enums.ResponseGroup;
+import amazon.services.awis.enums.CategoryBrowseResponseGroup;
+import amazon.services.awis.enums.UrlInfoResponseGroup;
+import amazon.services.awis.enums.SortBy;
+import amazon.services.awis.generated.CategoryBrowseResponse;
+import amazon.services.awis.generated.CategoryListingsResponse;
+import amazon.services.awis.generated.SitesLinkingInResponse;
 import amazon.services.awis.generated.TrafficHistoryResponse;
 import amazon.services.awis.generated.UrlInfoResponse;
 
@@ -33,23 +38,23 @@ public class AlexaWebInformationServiceClientTest {
         credentials = defaultAWSCredentialsProviderChain.getCredentials();
     }
     
-   // @Test
+    @Test
     public void testGetUrlInfo() throws SignatureException, IOException, JAXBException {
         AlexaWebInformationServiceClient client = new AlexaWebInformationServiceClient(credentials);
         
         UrlInfoRequest request = new UrlInfoRequest();
-        request.setResponseGroups(Arrays.asList(ResponseGroup.values()));
+        request.setResponseGroups(Arrays.asList(UrlInfoResponseGroup.values()));
         request.setUrl("www.bryght.com");
         
-        UrlInfoResponse urlInfoResponse = client.getUrlInfo(request);
+        UrlInfoResponse response = client.getUrlInfo(request);
         
-        Assert.assertNotNull(urlInfoResponse);
-        Assert.assertNotNull(urlInfoResponse.getResponse());
-        Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0));
-        Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getContactInfo());
-        Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getContentData());
-        Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getRelated());
-        Assert.assertNotNull(urlInfoResponse.getResponse().getUrlInfoResult().get(0).getAlexa().getTrafficData());
+        Assert.assertNotNull(response);
+        Assert.assertNotNull(response.getResponse());
+        Assert.assertNotNull(response.getResponse().getUrlInfoResult().get(0));
+        Assert.assertNotNull(response.getResponse().getUrlInfoResult().get(0).getAlexa().getContactInfo());
+        Assert.assertNotNull(response.getResponse().getUrlInfoResult().get(0).getAlexa().getContentData());
+        Assert.assertNotNull(response.getResponse().getUrlInfoResult().get(0).getAlexa().getRelated());
+        Assert.assertNotNull(response.getResponse().getUrlInfoResult().get(0).getAlexa().getTrafficData());
     }
     
     @Test
@@ -73,5 +78,59 @@ public class AlexaWebInformationServiceClientTest {
         Assert.assertNotNull(response.getResponse());
         Assert.assertNotNull(response.getResponse().getTrafficHistoryResult().get(0));
         Assert.assertNotNull(response.getResponse().getTrafficHistoryResult().get(0).getAlexa().getTrafficHistory());
+    }
+    
+    @Test
+    public void testCategoryBrowse() throws SignatureException, IOException, JAXBException {
+        AlexaWebInformationServiceClient client = new AlexaWebInformationServiceClient(credentials);
+        
+        CategoryBrowseRequest request = new CategoryBrowseRequest();
+        request.setResponseGroups(Arrays.asList(CategoryBrowseResponseGroup.values()));
+        request.setPath("Top/Shopping");
+        request.setDescriptions(Boolean.TRUE);
+
+        CategoryBrowseResponse response = client.getCategoryBrowse(request);
+        
+        Assert.assertNotNull(response);
+        Assert.assertNotNull(response.getResponse());
+        Assert.assertNotNull(response.getResponse().getCategoryBrowseResult().get(0));
+        Assert.assertNotNull(response.getResponse().getCategoryBrowseResult().get(0).getAlexa().getCategoryBrowse());
+    }    
+    
+    @Test
+    public void testCategoryListings() throws SignatureException, IOException, JAXBException {
+        AlexaWebInformationServiceClient client = new AlexaWebInformationServiceClient(credentials);
+        
+        CategoryListingsRequest request = new CategoryListingsRequest();
+        request.setPath("Top/Business/Automotive");
+        request.setRecursive(Boolean.TRUE);
+        request.setStart(1);;
+        request.setCount(15);
+        request.setSortBy(SortBy.Popularity);
+        request.setDescriptions(Boolean.TRUE);
+
+        CategoryListingsResponse response = client.getCategoryListings(request);
+        
+        Assert.assertNotNull(response);
+        Assert.assertNotNull(response.getResponse());
+        Assert.assertNotNull(response.getResponse().getCategoryListingsResult().get(0));
+        Assert.assertNotNull(response.getResponse().getCategoryListingsResult().get(0).getAlexa().getCategoryListings());
+    }
+    
+    @Test
+    public void testSitesLinkingIn() throws SignatureException, IOException, JAXBException {
+        AlexaWebInformationServiceClient client = new AlexaWebInformationServiceClient(credentials);
+        
+        SitesLinkingInRequest request = new SitesLinkingInRequest();
+        request.setUrl("www.amazon.com");
+        request.setStart(0);
+        request.setCount(15);
+
+        SitesLinkingInResponse response = client.getSitesLinkingIn(request);
+        
+        Assert.assertNotNull(response);
+        Assert.assertNotNull(response.getResponse());
+        Assert.assertNotNull(response.getResponse().getSitesLinkingInResult().get(0));
+        Assert.assertNotNull(response.getResponse().getSitesLinkingInResult().get(0).getAlexa().getSitesLinkingIn());
     }
 }

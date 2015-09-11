@@ -29,14 +29,13 @@ import org.slf4j.LoggerFactory;
 import amazon.services.awis.generated.CategoryBrowseResponse;
 import amazon.services.awis.generated.CategoryListingsResponse;
 import amazon.services.awis.generated.SitesLinkingInResponse;
-import amazon.services.awis.generated.TrafficHistory;
 import amazon.services.awis.generated.TrafficHistoryResponse;
 import amazon.services.awis.generated.UrlInfoResponse;
 
 import com.amazonaws.auth.AWSCredentials;
 
 
-public class AlexaWebInformationServiceClient implements getResponse {
+public class AlexaWebInformationServiceClient {
     protected final static Logger logger = LoggerFactory.getLogger(AlexaWebInformationServiceClient.class);
 
     private static final String SERVICE_HOST = "awis.amazonaws.com";
@@ -78,12 +77,12 @@ public class AlexaWebInformationServiceClient implements getResponse {
     /**
      * Builds the query string
      */
-    protected String buildQueryString(Request request) throws UnsupportedEncodingException {
+    protected <T> String buildQueryString(Request<T> request) throws UnsupportedEncodingException {
         String timestamp = getTimestamp(Calendar.getInstance().getTime());
         
         Map<String, String> queryParams = new TreeMap<String, String>();
         queryParams.put("Action", request.getAction().name());
-        queryParams.put("ResponseGroup", request.getResponseGroups().stream().map( rg -> rg.name()).collect(Collectors.joining(",")));
+        queryParams.put("ResponseGroup", request.getResponseGroups().stream().map( rg -> rg.toString()).collect(Collectors.joining(",")));
         queryParams.put("AWSAccessKeyId", credentials.getAWSAccessKeyId());
         queryParams.put("Timestamp", timestamp);
         if(request instanceof UrlInfoRequest) {
@@ -97,6 +96,39 @@ public class AlexaWebInformationServiceClient implements getResponse {
             }   
             if(req.getStart() != null) {
                 queryParams.put("Start", req.getStart());
+            }
+        } else  if(request instanceof CategoryBrowseRequest) {
+        	CategoryBrowseRequest req = (CategoryBrowseRequest) request;
+            queryParams.put("Path", req.getPath());
+            if(req.getDescriptions() != null) {
+                queryParams.put("Descriptions", req.getDescriptions() + "");
+            }
+        } else  if(request instanceof CategoryListingsRequest) {
+        	CategoryListingsRequest req = (CategoryListingsRequest) request;
+            queryParams.put("Path", req.getPath());
+            if(req.getSortBy() != null) {
+                queryParams.put("SortBy", req.getSortBy() + "");
+            }            
+            if(req.getRecursive() != null) {
+                queryParams.put("Recursive", req.getRecursive() + "");
+            }            
+            if(req.getStart() != null) {
+                queryParams.put("Start", req.getStart() + "");
+            }
+            if(req.getCount() != null) {
+                queryParams.put("Count", req.getCount() + "");
+            }
+            if(req.getDescriptions() != null) {
+                queryParams.put("Descriptions", req.getDescriptions() + "");
+            }
+        } else  if(request instanceof SitesLinkingInRequest) {
+        	SitesLinkingInRequest req = (SitesLinkingInRequest) request;
+            queryParams.put("Url", req.getUrl());
+            if(req.getStart() != null) {
+                queryParams.put("Start", req.getStart() + "");
+            }
+            if(req.getCount() != null) {
+                queryParams.put("Count", req.getCount() + "");
             }
         } 
         queryParams.put("SignatureVersion", "2");
@@ -171,42 +203,102 @@ public class AlexaWebInformationServiceClient implements getResponse {
         JAXBContext jc = JAXBContext.newInstance(UrlInfoResponse.class);
 
         Unmarshaller unmarshaller = jc.createUnmarshaller();
-        UrlInfoResponse urlInfoResponse = (UrlInfoResponse) unmarshaller.unmarshal(new StringReader(xmlResponse));
+        UrlInfoResponse response = (UrlInfoResponse) unmarshaller.unmarshal(new StringReader(xmlResponse));
         
-        return urlInfoResponse;
+        return response;
     }  
     
+    /**
+     * The TrafficHistory action returns the daily Alexa Traffic Rank, Reach per Million Users, 
+     * and Unique Page Views per Million Users for each day since August 2007. This same data is used to produce the traffic graphs found on alexa.com.
+     * 
+     * @param request
+     * @return
+     * @throws JAXBException
+     * @throws IOException
+     * @throws SignatureException
+     */
     public TrafficHistoryResponse getTrafficHistory(TrafficHistoryRequest request) throws JAXBException, IOException, SignatureException {
         String xmlResponse = getResponse(request);
         
         JAXBContext jc = JAXBContext.newInstance(TrafficHistoryResponse.class);
 
         Unmarshaller unmarshaller = jc.createUnmarshaller();
-        TrafficHistoryResponse urlInfoResponse = (TrafficHistoryResponse) unmarshaller.unmarshal(new StringReader(xmlResponse));
+        TrafficHistoryResponse response = (TrafficHistoryResponse) unmarshaller.unmarshal(new StringReader(xmlResponse));
         
-        return urlInfoResponse;
+        return response;
     }
     
+    /**
+     * The CategoryBrowse action and CategoryListings actions together provide a directory service based on the Open Directory, 
+     * www.dmoz.org, and enhanced with Alexa traffic data.
+     * 
+     * For any given category, the CategoryBrowse action returns a list of sub-categories. Within a particular category you can use the 
+     * CategoryListings action to get the documents within that category ordered by traffic.
+     * 
+     * @param request
+     * @return
+     * @throws JAXBException
+     * @throws UnsupportedEncodingException
+     * @throws SignatureException
+     * @throws IOException
+     */
     public CategoryBrowseResponse getCategoryBrowse(CategoryBrowseRequest request) throws JAXBException, UnsupportedEncodingException, SignatureException, IOException {
         String xmlResponse = getResponse(request);
         
         JAXBContext jc = JAXBContext.newInstance(CategoryBrowseResponse.class);
 
         Unmarshaller unmarshaller = jc.createUnmarshaller();
-        CategoryBrowseResponse urlInfoResponse = (CategoryBrowseResponse) unmarshaller.unmarshal(new StringReader(xmlResponse));
+        CategoryBrowseResponse response = (CategoryBrowseResponse) unmarshaller.unmarshal(new StringReader(xmlResponse));
         
-        return urlInfoResponse;
+        return response;
     }   
     
-    public CategoryListingsResponse getCategoryListings(CategoryListingsRequest request) {
-        return null;
+    /***
+     * The CategoryListings action is a directory service based on the Open Directory, www.dmoz.org. 
+     * For any given category, it returns a list of site listings contained within that category.
+     * 
+     * @param request
+     * @return
+     * @throws UnsupportedEncodingException
+     * @throws SignatureException
+     * @throws IOException
+     * @throws JAXBException
+     */
+    public CategoryListingsResponse getCategoryListings(CategoryListingsRequest request) throws UnsupportedEncodingException, SignatureException, IOException, JAXBException {
+        String xmlResponse = getResponse(request);
+        
+        JAXBContext jc = JAXBContext.newInstance(CategoryListingsResponse.class);
+
+        Unmarshaller unmarshaller = jc.createUnmarshaller();
+        CategoryListingsResponse response = (CategoryListingsResponse) unmarshaller.unmarshal(new StringReader(xmlResponse));
+        
+        return response;  
     }  
 
-    public SitesLinkingInResponse getSitesLinkingIn(SitesLinkingInRequest request) {
-        return null;
+    /**
+     * The SitesLinkingIn action returns a list of web sites linking to a given web site. 
+     * Within each domain linking into the web site, only a single link - the one with the highest page-level traffic - is returned.
+     * 
+     * @param request
+     * @return
+     * @throws UnsupportedEncodingException
+     * @throws SignatureException
+     * @throws IOException
+     * @throws JAXBException
+     */
+    public SitesLinkingInResponse getSitesLinkingIn(SitesLinkingInRequest request) throws UnsupportedEncodingException, SignatureException, IOException, JAXBException {
+        String xmlResponse = getResponse(request);
+        
+        JAXBContext jc = JAXBContext.newInstance(SitesLinkingInResponse.class);
+
+        Unmarshaller unmarshaller = jc.createUnmarshaller();
+        SitesLinkingInResponse response = (SitesLinkingInResponse) unmarshaller.unmarshal(new StringReader(xmlResponse));
+        
+        return response;
     }
 
-	private String getResponse(Request request) throws UnsupportedEncodingException, SignatureException, IOException {
+	private <T> String getResponse(Request<T> request) throws UnsupportedEncodingException, SignatureException, IOException {
 		String query = buildQueryString(request);
         String signature = generateSignature(query);
 

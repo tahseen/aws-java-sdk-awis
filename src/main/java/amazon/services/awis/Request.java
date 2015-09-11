@@ -4,16 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import amazon.services.awis.enums.Action;
-import amazon.services.awis.enums.ResponseGroup;
 
 /**
  * Base class for all Action Request objects.
  * 
  * @author Tahseen Ur Rehman Fida
  */
-public class Request {
+public class Request<T> {
     private Action action;
-    private List<ResponseGroup> responseGroups;
+    private List<T> responseGroups;
     
     public Action getAction() {
         return action;
@@ -23,19 +22,18 @@ public class Request {
         this.action = action;
     }
     
-    public List<ResponseGroup> getResponseGroups() {
+    public List<T> getResponseGroups() {
         return responseGroups;
     }
 
-    public void setResponseGroups(List<ResponseGroup> responseGroups) {
+    public void setResponseGroups(List<T> responseGroups) {
         this.responseGroups = responseGroups;
     }
     
-    public void addResponseGroup(ResponseGroup responseGroup) {
+    public void addResponseGroup(T responseGroup) {
         if(this.responseGroups == null) {
             this.responseGroups = new ArrayList<>();
         }
         this.responseGroups.add(responseGroup);
     }
-    
 }

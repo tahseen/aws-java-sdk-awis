@@ -1,6 +1,6 @@
 package amazon.services.awis.enums;
 
-public enum ResponseGroup {
+public enum UrlInfoResponseGroup {
     /**
      *  Up to 11 related links
      */
@@ -81,11 +81,4 @@ public enum ResponseGroup {
      * Information about the site's content (equivalent to ResponseGroup=SiteData,AdultContent,Popups,Speed,Language)
      */
     ContentData,
-    
-    /**
-     * Meta-Response Group
-     * 
-     * History is the only available response group for action TrafficHistory
-     */
-    History
 }

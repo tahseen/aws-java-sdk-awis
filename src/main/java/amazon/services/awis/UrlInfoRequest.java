@@ -1,13 +1,14 @@
 package amazon.services.awis;
 
 import amazon.services.awis.enums.Action;
+import amazon.services.awis.enums.UrlInfoResponseGroup;
 
 /**
  * The request object for {@link Action.UrlInfo}
  * 
  * @author Tahseen Ur Rehman Fida
  */
-public class UrlInfoRequest extends Request {
+public class UrlInfoRequest extends Request<UrlInfoResponseGroup> {
     /**
      * Any valid URL.
      */

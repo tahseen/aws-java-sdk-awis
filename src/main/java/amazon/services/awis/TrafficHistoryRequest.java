@@ -3,12 +3,11 @@ package amazon.services.awis;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.TimeZone;
 
 import amazon.services.awis.enums.Action;
-import amazon.services.awis.enums.ResponseGroup;
+import amazon.services.awis.enums.TrafficHistoryResponseGroup;
 
-public class TrafficHistoryRequest extends Request {
+public class TrafficHistoryRequest extends Request<TrafficHistoryResponseGroup> {
     private static final String DATEFORMAT = "yyyyMMdd";
 
     /**
@@ -29,7 +28,7 @@ public class TrafficHistoryRequest extends Request {
     
     public TrafficHistoryRequest() {
         setAction(Action.TrafficHistory);
-        setResponseGroups(Arrays.asList(ResponseGroup.History));;
+        setResponseGroups(Arrays.asList(TrafficHistoryResponseGroup.History));;
     }
 
     public String getUrl() {
