@@ -154,12 +154,6 @@ You can use the the library my adding following dependencies in your maven proje
 
 <dependencies>
 	<dependency>
-		<groupId>junit</groupId>
-		<artifactId>junit</artifactId>
-		<version>4.12</version>
-		<scope>test</scope>
-	</dependency>
-	<dependency>
 		<groupId>net.distributary.tahseen</groupId>
 		<artifactId>aws-java-sdk-awis</artifactId>
 		<version>0.1</version>
