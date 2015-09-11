@@ -145,7 +145,10 @@ You can use the the library my adding following dependencies in your maven proje
 	<repository>
 		<id>tahseen.distributary.net</id>
 		<name>tahseen.distributary.net</name>
-		<url>http://tahseen.distributary.net</url>
+		<url>http://tahseen.distributary.net/release/</url>
+		<snapshots>
+			<enabled>false</enabled>
+		</snapshots>
 	</repository>
 </repositories>
 
