@@ -163,7 +163,3 @@ You can use the the library my adding following dependencies in your maven proje
 	</dependency>
 </dependencies>
 ```
-
-## Jars
-
-For none maven project you can download the latest jars from the release tab of the project. 	
