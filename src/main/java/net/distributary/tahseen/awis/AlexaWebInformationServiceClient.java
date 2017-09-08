@@ -1,7 +1,7 @@
 package net.distributary.tahseen.awis;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -23,16 +23,16 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.amazonaws.auth.AWSCredentials;
+
 import net.distributary.tahseen.awis.generated.CategoryBrowseResponse;
 import net.distributary.tahseen.awis.generated.CategoryListingsResponse;
 import net.distributary.tahseen.awis.generated.SitesLinkingInResponse;
 import net.distributary.tahseen.awis.generated.TrafficHistoryResponse;
 import net.distributary.tahseen.awis.generated.UrlInfoResponse;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.amazonaws.auth.AWSCredentials;
 
 
 public class AlexaWebInformationServiceClient {
@@ -325,12 +325,12 @@ public class AlexaWebInformationServiceClient {
         URL url = new URL(requestUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         
-        InputStream in;
+        InputStreamReader in;
         try {
-            in = conn.getInputStream();
+            in = new InputStreamReader(conn.getInputStream(), "UTF-8");
         } catch(Exception e) {
-        	logger.error("Http request failed.", e);
-            in = conn.getErrorStream();
+            logger.error("Http request failed.", e);
+            in = new InputStreamReader(conn.getErrorStream(), "UTF-8");
         }
        
         StringBuffer sb = null;
