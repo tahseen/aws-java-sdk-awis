@@ -4,7 +4,7 @@
 	<groupId>net.distributary.tahseen</groupId>
 	<artifactId>aws-java-sdk-awis</artifactId>
 	<packaging>jar</packaging>
-	<version>0.1</version>
+	<version>0.2</version>
 
 	<name>aws-java-sdk-awis</name>
 	<description>Amazon Alexa Web Information Service client</description>
