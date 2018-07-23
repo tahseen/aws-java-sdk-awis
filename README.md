@@ -136,27 +136,3 @@ Assert.assertNotNull(response.getResponse().getSitesLinkingInResult().get(0));
 Assert.assertNotNull(response.getResponse().getSitesLinkingInResult().get(0).getAlexa().getSitesLinkingIn()); 
 ```
 
-## Maven Dependencies 	
-
-You can use the the library my adding following dependencies in your maven project.
-
-```xml
-<repositories>
-	<repository>
-		<id>tahseen.distributary.net</id>
-		<name>tahseen.distributary.net</name>
-		<url>http://tahseen.distributary.net/release/</url>
-		<snapshots>
-			<enabled>false</enabled>
-		</snapshots>
-	</repository>
-</repositories>
-
-<dependencies>
-	<dependency>
-		<groupId>net.distributary.tahseen</groupId>
-		<artifactId>aws-java-sdk-awis</artifactId>
-		<version>0.1</version>
-	</dependency>
-</dependencies>
-```
