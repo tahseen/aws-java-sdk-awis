@@ -22,19 +22,6 @@
 		<url>https://github.com/tahseen/aws-java-sdk-awis.git</url>
 	</scm>
 	
-	<distributionManagement>
-		<repository>
-			<id>aws-release</id>
-			<name>AWS Release Repository</name>
-			<url>s3://tahseen.distributary.net/release</url>
-		</repository>
-		<snapshotRepository>
-			<id>aws-snapshot</id>
-			<name>AWS Snapshot Repository</name>
-			<url>s3://tahseen.distributary.net/snapshot</url>
-		</snapshotRepository>
-	</distributionManagement>
-
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
